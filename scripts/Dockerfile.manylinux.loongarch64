@@ -96,5 +96,15 @@ ENV CXXFLAGS="-Wno-error=address"
 RUN mkdir -p /workspace
 WORKDIR  /workspace
 
+COPY --from=antlr4 /usr/local /usr/local
+COPY --from=faiss /usr/local /usr/local
+COPY --from=folly /usr/local /usr/local
+COPY --from=grpc /usr/local /usr/local
+COPY --from=marisa /usr/local /usr/local
+COPY --from=prometheus-cpp /usr/local /usr/local
+COPY --from=rapidjson /usr/local /usr/local
+COPY --from=roaring /usr/local /usr/local
+COPY --from=sqlitecpp /usr/local /usr/local
+
 COPY build_milvus_lite.sh /workspace/build_milvus_lite.sh
 RUN chmod +x /workspace/build_milvus_lite.sh
