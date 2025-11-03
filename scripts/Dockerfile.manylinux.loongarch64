@@ -10,85 +10,15 @@
 # or implied. See the License for the specific language governing permissions and limitations under the License.
 
 
-FROM ghcr.io/loong64/anosli:23 AS base
+FROM ghcr.io/loong64/anolis:23
 
-WORKDIR /tmp
-
-RUN yum install -y \
-        autoconf \
-        automake \
-        cmake \
-        curl \
-        diffutils \
-        file \
-        g++ \
-        gcc \
-        git \
-        less \
-        make \
-        ninja-build \
-        patch \
-        perl \
-        unzip \
-        wget \
-        which \
-        xz \
-        zstd \
-        sudo \
+RUN yum install -y cmake g++ gcc git libatomic-static libstdc++-static openblas-devel perl-base perl-FindBin perl-Digest-SHA perl-ExtUtils-MakeMaker perl-IPC-Cmd perl-thread-Queue perl-threads \
+    && cp /usr/lib/gcc/loongarch64-anolis-linux/12/libatomic.a /usr/lib64/ \
     && yum clean all
 
-FROM base AS antlr4
-ADD ./common/install_antlr4.sh install_antlr4.sh
-RUN bash ./install_antlr4.sh
-
-FROM base AS faiss
-ADD ./common/install_faiss.sh install_faiss.sh
-RUN bash ./install_faiss.sh
-
-FROM base AS folly
-ADD ./common/install_folly.sh install_folly.sh
-RUN bash ./install_folly.sh
-
-FROM base AS grpc
-ADD ./common/install_grpc.sh install_grpc.sh
-RUN bash ./install_grpc.sh
-
-FROM base AS marisa
-ADD ./common/install_marisa.sh install_marisa.sh
-RUN bash ./install_marisa.sh
-
-FROM base AS prometheus-cpp
-ADD ./common/install_prometheus-cpp.sh install_prometheus-cpp.sh
-RUN bash ./install_prometheus-cpp.sh
-
-FROM base AS rapidjson
-ADD ./common/install_rapidjson.sh install_rapidjson.sh
-RUN bash ./install_rapidjson.sh
-
-FROM base AS roaring
-ADD ./common/install_roaring.sh install_roaring.sh
-RUN bash ./install_roaring.sh
-
-FROM base AS sqlitecpp
-ADD ./common/install_sqlitecpp.sh install_sqlitecpp.sh
-RUN bash ./install_sqlitecpp.sh
-
-FROM ghcr.io/loong64/manylinux_2_38_loongarch64:2025.07.30-1
-
-RUN yum install -y \
-        abseil-cpp-devel \
-        boost-devel \
-        git \
-        libatomic-static \
-        nlohmann-json-devel \
-        openblas-devel \
-        protobuf-devel \
-        re2-devel \
-        tbb-devel \
-        yaml-cpp-devel \
-    && yum clean all \
-    && cp /usr/lib/gcc/loongarch64-anolis-linux/12/libatomic.a /usr/lib64/
-ENV PATH="/opt/python/cp38-cp38/bin:${PATH}"
+ENV PATH="/opt/python/cp38-cp38/bin:${PATH}" \
+ENV PIP_EXTRA_INDEX_URL="https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple"
+RUN pip3 install conan==1.63.0
 RUN curl https://sh.rustup.rs -sSf | bash -s -- --default-toolchain=1.81 -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CCFLAGS="-Wno-error=address"
@@ -96,15 +26,14 @@ ENV CXXFLAGS="-Wno-error=address"
 RUN mkdir -p /workspace
 WORKDIR  /workspace
 
-COPY --from=antlr4 /usr/local /usr/local
-COPY --from=faiss /usr/local /usr/local
-COPY --from=folly /usr/local /usr/local
-COPY --from=grpc /usr/local /usr/local
-COPY --from=marisa /usr/local /usr/local
-COPY --from=prometheus-cpp /usr/local /usr/local
-COPY --from=rapidjson /usr/local /usr/local
-COPY --from=roaring /usr/local /usr/local
-COPY --from=sqlitecpp /usr/local /usr/local
+RUN conan remote add default-conan-local https://gitlab.com/api/v4/projects/75780705/packages/conan \
+    && conan config init \
+    && sed -i 's/s390x, /s390x, loongarch64 /g' ~/.conan/settings.yml \
+    && sed -i 's/"14", "14.1"]/"14", "14.1", "14.2", "14.3"]/g' ~/.conan/settings.yml \
+    && conan profile new default --detect \
+    && conan profile update settings.arch=loongarch64 default \
+    && conan profile update settings.arch_build=loongarch64 default
 
 COPY build_milvus_lite.sh /workspace/build_milvus_lite.sh
+COPY patches /workspace/patches
 RUN chmod +x /workspace/build_milvus_lite.sh

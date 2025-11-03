@@ -40,15 +40,6 @@ pushd glog-${FOLLY_VERSION}
 
 mkdir build && cd build
 
-    {
-    default_options = {
-        "shared": False,
-        "fPIC": True,
-        "with_gflags": True,
-        "with_threads": True,
-        "with_unwind": True,
-    }
-
 # https://github.com/conan-io/conan-center-index/blob/master/recipes/glog/all/conanfile.py
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DWITH_GFLAGS=True -DWITH_THREADS=True -WITH_PKGCONFIGD=True -DWITH_SYMBOLIZE=True -DWITH_UNWIND=True -DBUILD_TESTING=False -DWITH_GTEST=False -DCMAKE_TRY_COMPILE_CONFIGURATION=Release
 make -j$(nproc)
