@@ -12,28 +12,29 @@
 
 FROM ghcr.io/loong64/anolis:23
 
-RUN yum install -y cmake g++ gcc git libatomic-static libstdc++-static openblas-devel perl-base perl-FindBin perl-Digest-SHA perl-ExtUtils-MakeMaker perl-IPC-Cmd perl-thread-Queue perl-threads \
+RUN yum install -y cmake g++ gcc git libatomic-static libstdc++-static openblas-devel perl-base perl-FindBin perl-Digest-SHA perl-ExtUtils-MakeMaker perl-IPC-Cmd perl-Thread-Queue perl-threads python3-pip texinfo \
     && cp /usr/lib/gcc/loongarch64-anolis-linux/12/libatomic.a /usr/lib64/ \
+    && python3 -m venv /opt/python \
     && yum clean all
 
-ENV PATH="/opt/python/cp38-cp38/bin:${PATH}" \
+ENV PATH="/root/.cargo/bin:/opt/python/bin:${PATH}"
 ENV PIP_EXTRA_INDEX_URL="https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple"
-RUN pip3 install conan==1.63.0
-RUN curl https://sh.rustup.rs -sSf | bash -s -- --default-toolchain=1.81 -y
-ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CCFLAGS="-Wno-error=address"
 ENV CXXFLAGS="-Wno-error=address"
+
+RUN pip install -U pip && pip install build conan==1.66.0
+RUN curl https://sh.rustup.rs -sSf | bash -s -- --default-toolchain=1.81 -y
 RUN mkdir -p /workspace
 WORKDIR  /workspace
 
-RUN conan remote add default-conan-local https://gitlab.com/api/v4/projects/75780705/packages/conan \
+RUN conan remote remove conancenter \
+    && conan remote add default-connan-loong64 https://gitlab.com/api/v4/projects/75780705/packages/conan \
+    && conan remote add conancenter https://center.conan.io \
     && conan config init \
-    && sed -i 's/s390x, /s390x, loongarch64 /g' ~/.conan/settings.yml \
-    && sed -i 's/"14", "14.1"]/"14", "14.1", "14.2", "14.3"]/g' ~/.conan/settings.yml \
-    && conan profile new default --detect \
+    && sed -i 's/s390x, /s390x, loongarch64, /g' ~/.conan/settings.yml \
     && conan profile update settings.arch=loongarch64 default \
-    && conan profile update settings.arch_build=loongarch64 default
+    && conan profile update settings.arch_build=loongarch64 default \
+    && cat ~/.conan/profiles/default
 
 COPY build_milvus_lite.sh /workspace/build_milvus_lite.sh
-COPY patches /workspace/patches
 RUN chmod +x /workspace/build_milvus_lite.sh
