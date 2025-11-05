@@ -30,7 +30,7 @@ git clone --recurse-submodules https://github.com/milvus-io/milvus-lite.git
 cd milvus-lite
 git checkout ${tag}
 
-sed -i 's@github.com/simdjson/simdjson@github.com/loong64/simdjson@g' CMakeLists.txt
+wget -qO - https://github.com/loong64/milvus-lite/raw/refs/heads/main/patch_loong64.patch | patch -p1
 sed -i 's@github.com/zilliztech/knowhere@github.com/loong64/knowhere@g' thirdparty/milvus/internal/core/thirdparty/knowhere/CMakeLists.txt
 
 git diff

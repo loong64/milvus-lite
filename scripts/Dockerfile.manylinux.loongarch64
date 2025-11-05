@@ -12,7 +12,7 @@
 
 FROM ghcr.io/loong64/anolis:23
 
-RUN yum install -y cmake g++ gcc git libatomic-static libstdc++-static openblas-devel perl-base perl-FindBin perl-Digest-SHA perl-ExtUtils-MakeMaker perl-IPC-Cmd perl-Thread-Queue perl-threads python3-pip texinfo \
+RUN yum install -y cmake g++ gcc git libatomic-static libstdc++-static openblas-devel patch perl-base perl-FindBin perl-Digest-SHA perl-ExtUtils-MakeMaker perl-IPC-Cmd perl-Thread-Queue perl-threads python3-pip texinfo wget \
     && cp /usr/lib/gcc/loongarch64-anolis-linux/12/libatomic.a /usr/lib64/ \
     && python3 -m venv /opt/python \
     && yum clean all

@@ -1,0 +1,74 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cd2593c..85d755f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -142,7 +142,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+ 
+ FetchContent_Declare(
+   simdjson
+-  GIT_REPOSITORY https://github.com/simdjson/simdjson.git
++  GIT_REPOSITORY https://github.com/loong64/simdjson.git
+   GIT_TAG v3.1.7)
+ FetchContent_MakeAvailable(simdjson)
+ 
+@@ -301,7 +301,7 @@ execute_process(
+   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/thirdparty/milvus
+   RESULT_VARIABLE CHECK_RESULT)
+ 
+-if(${CHECK_RESULT} EQUAL 0)
++if(${CHECK_RESULT} EQUAL 1)
+   message("Apply milvus patch...")
+   execute_process(
+     COMMAND git apply ${CMAKE_SOURCE_DIR}/thirdparty/milvus.patch
+diff --git a/thirdparty/knowhere.patch b/thirdparty/knowhere.patch
+index 9eddb77..152f723 100644
+--- a/thirdparty/knowhere.patch
++++ b/thirdparty/knowhere.patch
+@@ -12,3 +12,47 @@ index b7870adf..0d8fc16c 100644
+      src/index/index_node_data_mock_wrapper.cc
+      src/index/index_static.cc
+      src/index/index.cc
++diff --git a/cmake/libs/libfaiss.cmake b/cmake/libs/libfaiss.cmake
++index c26303ec..1bc30edc 100644
++--- a/cmake/libs/libfaiss.cmake
+++++ b/cmake/libs/libfaiss.cmake
++@@ -118,6 +118,7 @@ endif()
++ 
++ if(LINUX)
++   set(BLA_VENDOR OpenBLAS)
+++  find_path(BLAS_INCLUDE_DIRS cblas.h PATH_SUFFIXES openblas)
++ endif()
++ 
++ if(APPLE)
++@@ -173,6 +174,7 @@ if(__X86_64)
++     faiss PUBLIC OpenMP::OpenMP_CXX ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
++                  faiss_avx2 faiss_avx512 knowhere_utils)
++   target_compile_definitions(faiss PRIVATE FINTEGER=int)
+++  target_include_directories(faiss PUBLIC ${BLAS_INCLUDE_DIRS})
++ endif()
++ 
++ if(__AARCH64)
++@@ -195,6 +197,7 @@ if(__AARCH64)
++   target_link_libraries(faiss PUBLIC OpenMP::OpenMP_CXX ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
++                                      knowhere_utils)
++   target_compile_definitions(faiss PRIVATE FINTEGER=int)
+++  target_include_directories(faiss PUBLIC ${BLAS_INCLUDE_DIRS})
++ endif()
++ 
++ if(__PPC64)
++@@ -222,6 +225,7 @@ if(__PPC64)
++   target_link_libraries(faiss PUBLIC OpenMP::OpenMP_CXX ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
++                                       knowhere_utils)
++   target_compile_definitions(faiss PRIVATE FINTEGER=int)
+++  target_include_directories(faiss PUBLIC ${BLAS_INCLUDE_DIRS})
++ endif()
++ 
++ if(__LOONGARCH64)
++@@ -247,4 +251,5 @@ if(__LOONGARCH64)
++   target_link_libraries(faiss PUBLIC OpenMP::OpenMP_CXX ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
++                                       knowhere_utils)
++   target_compile_definitions(faiss PRIVATE FINTEGER=int)
++-endif()
++\ No newline at end of file
+++  target_include_directories(faiss PUBLIC ${BLAS_INCLUDE_DIRS})
+++endif()
