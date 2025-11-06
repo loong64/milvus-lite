@@ -20,6 +20,19 @@ index cd2593c..85d755f 100644
    message("Apply milvus patch...")
    execute_process(
      COMMAND git apply ${CMAKE_SOURCE_DIR}/thirdparty/milvus.patch
+diff --git a/python/setup.py b/python/setup.py
+index 03ae5a1..ead388c 100644
+--- a/python/setup.py
++++ b/python/setup.py
+@@ -33,7 +33,7 @@ MILVUS_ROOT = str(pathlib.Path(__file__).absolute().parent.parent / 'thirdparty'
+ class CMakeBuild(_bdist_wheel):
+     def finalize_options(self):
+         if sys.platform.lower() == 'linux':
+-            self.plat_name = f"manylinux2014_{platform.machine().lower()}"
++            self.plat_name = f"manylinux_2_38_{platform.machine().lower()}"
+         elif sys.platform.lower() == 'darwin':
+             if platform.machine().lower() == 'arm64':
+                 self.plat_name = f"macosx_11_0_{platform.machine().lower()}"
 diff --git a/thirdparty/knowhere.patch b/thirdparty/knowhere.patch
 index 9eddb77..152f723 100644
 --- a/thirdparty/knowhere.patch
