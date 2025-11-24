@@ -32,6 +32,7 @@ RUN conan remote remove conancenter \
     && conan remote add conancenter https://center.conan.io \
     && conan config init \
     && sed -i 's/s390x, /s390x, loongarch64, /g' ~/.conan/settings.yml \
+    && sed -i 's/"16", "17"/"16", "17", "21"/g' ~/.conan/settings.yml \
     && conan profile update settings.arch=loongarch64 default \
     && conan profile update settings.arch_build=loongarch64 default \
     && cat ~/.conan/profiles/default

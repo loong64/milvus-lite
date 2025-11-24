@@ -1,4 +1,4 @@
-name: build (milvus-lite)
+name: build-custom (milvus-lite)
 
 on:
   workflow_dispatch:
@@ -8,8 +8,6 @@ on:
         description: 'Package version'
         type: string
         required: true
-  schedule:
-    - cron: '0 10 * * *'
 
 jobs:
   build_wheels:
@@ -38,29 +36,18 @@ jobs:
           echo "Building package: ${package} version: ${version}"
           echo "PIP_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple" >> $GITHUB_ENV
 
-          check_file="milvus_lite-${version}-.*-${{ matrix.build }}.*_${{ matrix.arch }}.whl"
-          if curl "https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple/${package/./-}" | grep -oP '(?<=>)[^<]+\.whl' | grep -q "${check_file}"; then
-            echo "Package ${package} ${version} already exists"
-            echo "BUILD=false" >> $GITHUB_ENV
-            exit 0
-          fi
-
           echo "version=v${version}" >> $GITHUB_ENV
 
       - name: Checkout code
-        if: env.BUILD != 'false'
         uses: actions/checkout@v5
 
       - name: Setup QEMU
-        if: env.BUILD != 'false'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        if: env.BUILD != 'false'
         uses: docker/setup-buildx-action@v3
 
       - name: Build wheel
-        if: env.BUILD != 'false'
         run: |
           docker run --rm \
             --platform linux/loong64 \
@@ -74,24 +61,5 @@ jobs:
 
       - name: Check wheel
         run: |
-          ls -al wheelhouse/*.whl || exit 0
-          echo "upload=true" >> $GITHUB_ENV
-
-      - name: Upload wheels
-        if: env.upload == 'true'
-        run: |
-          pip install twine==6.0.1
-          for file in wheelhouse/*.whl; do
-            twine upload --repository-url https://gitlab.com/api/v4/projects/65746188/packages/pypi $file || true
-          done
-        env:
-          TWINE_USERNAME: ${{ github.repository_owner }}
-          TWINE_PASSWORD: ${{ secrets.GL_TOKEN }}
-
-      - name: Upload release
-        if: env.upload == 'true'
-        run: |
-          gh release create ${{ env.version }} -R ${{ github.repository }} --title "${version}" --notes "**Full Changelog**: [${{ env.version }}](https://github.com/milvus-io/milvus-lite/releases/tag/${{ env.version }})" wheelhouse/*.whl
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ls -al wheelhouse/
 
